@@ -32,11 +32,11 @@ function addQuestion() {
     questionDiv.innerHTML = `
         <div class="form-group">
             <label>Question ${questionCount + 1}:</label>
-            <input type="text" class="question-text" required>
+            <input type="text" class="question-text" required oninput="updateQuestions()">
         </div>
         <div class="form-group">
             <label>Answer:</label>
-            <select class="question-answer" required>
+            <select class="question-answer" required onchange="updateQuestions()">
                 <option value="true">True</option>
                 <option value="false">False</option>
             </select>
@@ -51,14 +51,24 @@ function addQuestion() {
 function updateQuestions() {
     const questions = [];
     document.querySelectorAll('.question-block').forEach((block, index) => {
+        const questionText = block.querySelector('.question-text').value;
+        const answerValue = block.querySelector('.question-answer').value;
+        
         questions.push({
-            question: block.querySelector('.question-text').value,
-            correctAnswer: block.querySelector('.question-answer').value === 'true',
+            question: questionText,
+            correctAnswer: answerValue === 'true',
             type: 'true-false'
         });
     });
     document.getElementById('questions').value = JSON.stringify(questions);
 }
+
+// Add form submit handler
+document.getElementById('quiz-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    updateQuestions(); // Update one final time before submitting
+    this.submit();
+});
 
 // Add first question automatically
 document.addEventListener('DOMContentLoaded', addQuestion);
