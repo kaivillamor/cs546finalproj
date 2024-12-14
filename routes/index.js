@@ -191,9 +191,9 @@ export const buildRoutes = (app) => {
                     return res.redirect('/login');
                 }
 
-                const { title, description, questions } = req.body;
+                const { title, description, category, questions } = req.body;
                 
-                if (!title || !description || !questions) {
+                if (!title || !description || !category || !questions) {
                     throw new Error('All fields are required');
                 }
 
@@ -201,6 +201,7 @@ export const buildRoutes = (app) => {
                 const newQuiz = {
                     title: title.trim(),
                     description: description.trim(),
+                    category: category.trim(),
                     questions: JSON.parse(questions),
                     createdBy: req.session.user.id,
                     createdAt: new Date(),
