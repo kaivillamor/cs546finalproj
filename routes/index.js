@@ -94,6 +94,7 @@ export const buildRoutes = (app) => {
                 if (password !== confirmPassword) throw new Error('Passwords do not match');
                 if (!validateRole(role)) throw new Error('Invalid role selected');
 
+
                 const userCollection = await users();
                 console.log('Connected to user collection');
 

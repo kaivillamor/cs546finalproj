@@ -29,11 +29,11 @@ const searchQuizzes = async (searchTerm) => {
       metaDiv.className = 'quiz-meta';
       
       const creatorSpan = document.createElement('span');
-      creatorSpan.textContent = `By: ${quiz.creator}`;
+      creatorSpan.textContent = 'By: ${quiz.creator}';
       metaDiv.appendChild(creatorSpan);
 
       const questionSpan = document.createElement('span');
-      questionSpan.textContent = `Questions: ${quiz.questionCount}`;
+      questionSpan.textContent = 'Questions: ${quiz.questionCount}';
       metaDiv.appendChild(questionSpan);
       
       quizCard.appendChild(metaDiv);
