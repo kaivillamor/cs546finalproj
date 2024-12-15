@@ -16,7 +16,6 @@ router.get('/', async (req, res) => {
         const userCollection = await users();
         const quizCollection = await quizzes();
         
-        // Get user and initialize if quizResults doesn't exist
         let user = await userCollection.findOne({ _id: new ObjectId(req.session.user.id) });
         if (!user.quizResults) {
             await userCollection.updateOne(
@@ -33,27 +32,43 @@ router.get('/', async (req, res) => {
             user = await userCollection.findOne({ _id: new ObjectId(req.session.user.id) });
         }
 
-        // Get available quizzes
         const availableQuizzes = await quizCollection
             .find({ active: true })
             .sort({ createdAt: -1 })
             .limit(5)
             .toArray();
 
-        const formattedQuizzes = availableQuizzes.map(quiz => ({
-            _id: quiz._id,
-            title: quiz.title,
-            description: quiz.description,
-            questionCount: quiz.questions.length,
-            category: quiz.category || 'General'
-        }));
+        let formattedQuizzes = [];
+        for(let quiz of availableQuizzes) {
+            formattedQuizzes.push({
+                _id: quiz._id,
+                title: quiz.title,
+                description: quiz.description,
+                questionCount: quiz.questions.length,
+                category: quiz.category || 'General'
+            });
+        }
 
-        // Calculate today's quizzes
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        const todayQuizzes = user.quizResults.filter(result => 
-            result.dateTaken >= today
-        ).length;
+        
+        let todayCount = 0;
+        for(let result of user.quizResults) {
+            if(result.dateTaken >= today) {
+                todayCount++;
+            }
+        }
+
+        let recentResults = [];
+        for(let i = 0; i < 5 && i < user.quizResults.length; i++) {
+            let result = user.quizResults[i];
+            let date = result.dateTaken;
+            recentResults.push({
+                quizTitle: result.quizTitle,
+                score: result.score,
+                date: (date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear()
+            });
+        }
 
         res.render('users/dashboard', {
             title: 'User Dashboard',
@@ -61,15 +76,11 @@ router.get('/', async (req, res) => {
                 username: user.username,
                 quizzesTaken: user.quizzesTaken || 0,
                 averageScore: user.averageScore || 0,
-                todayQuizzes: todayQuizzes
+                todayQuizzes: todayCount
             },
             availableQuizzes: formattedQuizzes,
             inProgressQuizzes: [],
-            recentResults: user.quizResults.slice(0, 5).map(result => ({
-                quizTitle: result.quizTitle,
-                score: result.score,
-                date: result.dateTaken.toLocaleDateString()
-            }))
+            recentResults: recentResults
         });
     } catch (e) {
         res.status(500).render('error', {

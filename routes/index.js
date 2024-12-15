@@ -7,19 +7,18 @@ import userRoutes from './users.js';
 import { users } from '../config/mongoCollections.js';
 import { validateEmail, validatePassword, validateName, validateUsername, validateRole, hashPassword, comparePasswords } from '../helpers.js';
 import { quizzes } from '../config/mongoCollections.js';
+import { ObjectId } from 'mongodb';
 
 export const buildRoutes = (app) => {
     app.use('/admin', adminRoutes);
     app.use('/user', userRoutes);
     
-    // Home route
     app.get('/', (req, res) => {
         res.render('home', {
             title: 'Quiz App'
         });
     });
 
-    // Login route
     app.route('/login')
         .get((req, res) => {
             if (req.session.user) {
@@ -71,7 +70,6 @@ export const buildRoutes = (app) => {
             }
         });
 
-    // Register route
     app.route('/register')
         .get((req, res) => {
             if (req.session.user) {
@@ -81,16 +79,14 @@ export const buildRoutes = (app) => {
         })
         .post(async (req, res) => {
             try {
-                console.log('Registration attempt:', req.body); // Debug log
+                console.log('Registration attempt:', req.body);
 
                 const { firstName, lastName, username, email, password, confirmPassword, role } = req.body;
 
-                // Validate all fields are present
                 if (!firstName || !lastName || !username || !email || !password || !confirmPassword || !role) {
                     throw new Error('All fields are required');
                 }
 
-                // Validate each field
                 if (!validateName(firstName)) throw new Error('Invalid first name');
                 if (!validateName(lastName)) throw new Error('Invalid last name');
                 if (!validateUsername(username)) throw new Error('Invalid username');
@@ -99,8 +95,9 @@ export const buildRoutes = (app) => {
                 if (password !== confirmPassword) throw new Error('Passwords do not match');
                 if (!validateRole(role)) throw new Error('Invalid role selected');
 
+
                 const userCollection = await users();
-                console.log('Connected to user collection'); // Debug log
+                console.log('Connected to user collection');
 
                 const existingUser = await userCollection.findOne({
                     $or: [
@@ -124,7 +121,7 @@ export const buildRoutes = (app) => {
                     createdAt: new Date()
                 };
 
-                console.log('Attempting to insert user:', { ...newUser, password: '[HIDDEN]' }); // Debug log
+                console.log('Attempting to insert user:', { ...newUser, password: '[HIDDEN]' });
 
                 const insertInfo = await userCollection.insertOne(newUser);
                 
@@ -132,7 +129,6 @@ export const buildRoutes = (app) => {
                     throw new Error('Could not add user');
                 }
 
-                // Add the session
                 req.session.user = {
                     id: insertInfo.insertedId,
                     username: newUser.username,
@@ -140,10 +136,9 @@ export const buildRoutes = (app) => {
                     role: newUser.role
                 };
 
-                // Redirect based on role
                 res.redirect(newUser.role === 'admin' ? '/admin' : '/user');
             } catch (e) {
-                console.error('Registration error:', e); // Debug log
+                console.error('Registration error:', e);
                 res.status(400).render('register', {
                     title: 'Register',
                     error: e.message,
@@ -155,7 +150,6 @@ export const buildRoutes = (app) => {
             }
         });
 
-    // Logout route - make sure it's BEFORE the 404 catch-all
     app.get('/logout', (req, res) => {
         if (req.session) {
             req.session.destroy((err) => {
@@ -166,7 +160,7 @@ export const buildRoutes = (app) => {
                         error: 'Could not log out'
                     });
                 }
-                res.clearCookie('QuizAppSession'); // Clear the session cookie
+                res.clearCookie('QuizAppSession');
                 res.redirect('/');
             });
         } else {
@@ -174,7 +168,6 @@ export const buildRoutes = (app) => {
         }
     });
 
-    // Quiz creation route
     app.route('/quiz/create')
         .get((req, res) => {
             if (!req.session.user) {
@@ -224,7 +217,90 @@ export const buildRoutes = (app) => {
             }
         });
 
-    // 404 middleware - this should be last
+    app.get('/quiz/:id', async (req, res) => {
+        try {
+            if (!req.session.user) {
+                return res.redirect('/login');
+            }
+
+            const quizCollection = await quizzes();
+            const quiz = await quizCollection.findOne({ _id: new ObjectId(req.params.id) });
+            
+            if (!quiz) {
+                throw new Error('Quiz not found');
+            }
+
+            res.render('quiz/take', {
+                title: quiz.title,
+                quiz: {
+                    _id: quiz._id,
+                    title: quiz.title,
+                    description: quiz.description,
+                    questions: quiz.questions,
+                    category: quiz.category
+                },
+                user: req.session.user
+            });
+        } catch (e) {
+            res.status(404).render('error', {
+                title: 'Error',
+                error: e.message
+            });
+        }
+    });
+
+    app.post('/quiz/:id/submit', async (req, res) => {
+        try {
+            if (!req.session.user) {
+                return res.redirect('/login');
+            }
+
+            const { answers } = req.body;
+            const quizCollection = await quizzes();
+            const userCollection = await users();
+            const quiz = await quizCollection.findOne({ _id: new ObjectId(req.params.id) });
+
+            if (!quiz) {
+                throw new Error('Quiz not found');
+            }
+
+            const parsedAnswers = JSON.parse(answers);
+            let score = 0;
+            
+            quiz.questions.forEach((question, index) => {
+                if (question.correctAnswer === parsedAnswers[index]) {
+                    score++;
+                }
+            });
+
+            const scorePercentage = Math.round((score / quiz.questions.length) * 100);
+
+            // Update user's quiz results
+            await userCollection.updateOne(
+                { _id: new ObjectId(req.session.user.id) },
+                {
+                    $push: {
+                        quizResults: {
+                            quizId: quiz._id,
+                            quizTitle: quiz.title,
+                            score: scorePercentage,
+                            dateTaken: new Date()
+                        }
+                    },
+                    $inc: { quizzesTaken: 1 }
+                }
+            );
+
+            res.json({
+                score: scorePercentage,
+                totalQuestions: quiz.questions.length,
+                correctAnswers: score
+            });
+        } catch (e) {
+            res.status(400).json({ error: e.message });
+        }
+    });
+
     app.use('*', (req, res) => {
         res.status(404).render('error', {
             title: '404 Not Found',

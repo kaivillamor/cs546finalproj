@@ -1,8 +1,17 @@
 import bcrypt from 'bcrypt';
 
 export const validateEmail = (email) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
+  if (!email.includes('@')) return false;
+  
+  const [localPart, domain] = email.split('@');
+  if (!localPart || !domain) return false;
+  if (!domain.includes('.')) return false;
+  
+  const parts = email.split('@');
+  if (parts.length !== 2) return false;
+  if (parts[0].includes(' ') || parts[1].includes(' ')) return false;
+  
+  return true;
 };
 
 export const validatePassword = (password) => {
@@ -10,11 +19,27 @@ export const validatePassword = (password) => {
 };
 
 export const validateName = (name) => {
-  return name.trim().length >= 2 && /^[a-zA-Z\s-]+$/.test(name);
+  const trimmedName = name.trim();
+  if (trimmedName.length < 2) return false;
+  
+  const validChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ- ';
+  for (const char of trimmedName) {
+    if (!validChars.includes(char)) return false;
+  }
+  
+  return true;
 };
 
 export const validateUsername = (username) => {
-  return username.trim().length >= 3 && /^[a-zA-Z0-9_-]+$/.test(username);
+  const trimmedUsername = username.trim();
+  if (trimmedUsername.length < 3) return false;
+  
+  const validChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-';
+  for (const char of trimmedUsername) {
+    if (!validChars.includes(char)) return false;
+  }
+  
+  return true;
 };
 
 export const validateRole = (role) => {

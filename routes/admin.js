@@ -8,7 +8,6 @@ router.get('/', async (req, res) => {
         const quizCollection = await quizzes();
         const userCollection = await users();
         
-        // Get counts
         const totalQuizzes = await quizCollection.countDocuments();
         const totalUsers = await userCollection.countDocuments();
         
@@ -16,8 +15,8 @@ router.get('/', async (req, res) => {
             title: 'Admin Dashboard',
             totalQuizzes: totalQuizzes || 0,
             totalUsers: totalUsers || 0,
-            activeUsers: Math.floor(totalUsers * 0.7), // Example metric
-            recentActivity: [] // Add sample activity data here
+            activeUsers: Math.floor(totalUsers * 0.7), // temp
+            recentActivity: [] // temp
         });
     } catch (e) {
         res.status(500).render('error', {
