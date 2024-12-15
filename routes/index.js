@@ -118,6 +118,7 @@ export const buildRoutes = (app) => {
                     email: email.toLowerCase(),
                     password: hashedPassword,
                     role: role,
+                    description: '',
                     createdAt: new Date()
                 };
 
@@ -313,22 +314,118 @@ export const buildRoutes = (app) => {
         }
     });
 
+    app.get('/profile', async (req, res) => {
+        try {
+            if (!req.session.user) {
+                return res.redirect('/login');
+            }
+
+            const userCollection = await users();
+            const user = await userCollection.findOne({ _id: new ObjectId(req.session.user.id) });
+
+            if (!user) {
+                throw new Error('User not found');
+            }
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            let todayCount = 0;
+            if (user.quizResults) {
+                todayCount = user.quizResults.filter(result => result.dateTaken >= today).length;
+            }
+
+            res.render('profile', {
+                title: 'User Profile',
+                user: {
+                    username: user.username,
+                    quizzesTaken: user.quizzesTaken || 0,
+                    averageScore: user.averageScore || 0,
+                    todayQuizzes: todayCount,
+                    description: user.description || ''
+                }
+            });
+        } catch (e) {
+            res.status(500).render('error', {
+                title: 'Error',
+                error: e.message
+            });
+        }
+    });
+
+    app.post('/profile/description', async (req, res) => {
+        try {
+            if (!req.session.user) {
+                return res.status(401).json({ error: 'Not authenticated' });
+            }
+
+            const { description } = req.body;
+            const userCollection = await users();
+            
+            await userCollection.updateOne(
+                { _id: new ObjectId(req.session.user.id) },
+                { $set: { description: description } }
+            );
+
+            res.json({ success: true });
+        } catch (e) {
+            res.status(500).json({ error: e.message });
+        }
+    });
+
+    app.post('/profile/password', async (req, res) => {
+        try {
+            if (!req.session.user) {
+                return res.redirect('/login');
+            }
+
+            const { currentPassword, newPassword } = req.body;
+            const userCollection = await users();
+            const user = await userCollection.findOne({ _id: new ObjectId(req.session.user.id) });
+
+            if (!(await comparePasswords(currentPassword, user.password))) {
+                return res.render('change-password', {
+                    title: 'Change Password',
+                    error: 'Current password is incorrect'
+                });
+            }
+
+            if (!validatePassword(newPassword)) {
+                return res.render('change-password', {
+                    title: 'Change Password',
+                    error: 'New password must be at least 8 characters'
+                });
+            }
+
+            const hashedNewPassword = await hashPassword(newPassword);
+            await userCollection.updateOne(
+                { _id: new ObjectId(req.session.user.id) },
+                { $set: { password: hashedNewPassword } }
+            );
+
+            res.redirect('/profile');
+        } catch (e) {
+            res.render('change-password', {
+                title: 'Change Password',
+                error: e.message
+            });
+        }
+    });
+
+    app.get('/change-password', (req, res) => {
+        if (!req.session.user) {
+            return res.redirect('/login');
+        }
+        res.render('change-password', {
+            title: 'Change Password'
+        });
+    });
+
     app.use('*', (req, res) => {
         res.status(404).render('error', {
             title: '404 Not Found',
             error: 'Page not found'
         });
-    });
-
-    app.get('/test-db', async (req, res) => {
-        try {
-            const userCollection = await users();
-            const count = await userCollection.countDocuments();
-            res.json({ message: 'Database connected', userCount: count });
-        } catch (e) {
-            console.error('Database test error:', e);
-            res.status(500).json({ error: e.message });
-        }
     });
 };
 

@@ -1,0 +1,123 @@
+<div class="profile-container">
+    <div class="profile-header">
+        <h1>{{user.username}}'s Profile</h1>
+        <a href="/user" class="btn-secondary">Back to Dashboard</a>
+    </div>
+
+    <div class="profile-stats">
+        <div class="stat-card">
+            <h3>Quizzes Taken</h3>
+            <p>{{user.quizzesTaken}}</p>
+        </div>
+        <div class="stat-card">
+            <h3>Average Score</h3>
+            <p>{{user.averageScore}}%</p>
+        </div>
+        <div class="stat-card">
+            <h3>Completed Today</h3>
+            <p>{{user.todayQuizzes}}</p>
+        </div>
+        <div class="stat-card description-card">
+            <h3>About Me</h3>
+            <div id="description-display" {{#if editing}}style="display: none;"{{/if}}>
+                <p id="description-text">{{user.description}}</p>
+                <button onclick="toggleDescriptionEdit()" class="btn-secondary">Edit Description</button>
+            </div>
+            <div id="description-edit" style="display: none;">
+                <textarea id="description-input" class="description-textarea">{{user.description}}</textarea>
+                <div class="button-group">
+                    <button onclick="saveDescription()" class="btn-primary">Save</button>
+                    <button onclick="cancelEdit()" class="btn-secondary">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="profile-actions">
+        <a href="/change-password" class="btn-primary">Change Password</a>
+    </div>
+
+    <div id="password-change-form" style="display: none;" class="password-change-section">
+        <h3>Change Password</h3>
+        <div class="form-group">
+            <label for="current-password">Current Password:</label>
+            <input type="password" id="current-password" required>
+        </div>
+        <div class="form-group">
+            <label for="new-password">New Password:</label>
+            <input type="password" id="new-password" required>
+        </div>
+        <div class="form-group">
+            <label for="confirm-password">Confirm New Password:</label>
+            <input type="password" id="confirm-password" required>
+        </div>
+        <div class="button-group">
+            <button onclick="changePassword()" class="btn-primary">Update Password</button>
+            <button onclick="togglePasswordChange()" class="btn-secondary">Cancel</button>
+        </div>
+        <div id="password-error" class="error-message" style="display: none;"></div>
+    </div>
+</div>
+
+<script>
+function toggleDescriptionEdit() {
+    const displayDiv = document.getElementById('description-display');
+    const editDiv = document.getElementById('description-edit');
+    const input = document.getElementById('description-input');
+    
+    displayDiv.style.display = 'none';
+    editDiv.style.display = 'block';
+    input.focus();
+}
+
+function cancelEdit() {
+    const displayDiv = document.getElementById('description-display');
+    const editDiv = document.getElementById('description-edit');
+    const input = document.getElementById('description-input');
+    const currentText = document.getElementById('description-text').textContent;
+    
+    input.value = currentText;
+    displayDiv.style.display = 'block';
+    editDiv.style.display = 'none';
+}
+
+async function saveDescription() {
+    const description = document.getElementById('description-input').value;
+    try {
+        const response = await fetch('/profile/description', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ description })
+        });
+        
+        if (response.ok) {
+            document.getElementById('description-text').textContent = description;
+            const displayDiv = document.getElementById('description-display');
+            const editDiv = document.getElementById('description-edit');
+            
+            displayDiv.style.display = 'block';
+            editDiv.style.display = 'none';
+        } else {
+            alert('Failed to update description');
+        }
+    } catch (error) {
+        alert('Error updating description');
+    }
+}
+
+function togglePasswordChange() {
+    const form = document.getElementById('password-change-form');
+    const errorDiv = document.getElementById('password-error');
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    errorDiv.style.display = 'none';
+    
+    // Clear form fields when toggling
+    if (form.style.display === 'none') {
+        document.getElementById('current-password').value = '';
+        document.getElementById('new-password').value = '';
+        document.getElementById('confirm-password').value = '';
+    }
+}
+</script> 
