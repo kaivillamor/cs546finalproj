@@ -17,6 +17,30 @@
             <h3>Completed Today</h3>
             <p>{{user.todayQuizzes}}</p>
         </div>
+        <div class="stat-card badge-card">
+            <h3>Badge</h3>
+            <div class="badge-display">
+                {{#if user.quizzesTaken}}
+                    {{#if user.isMaster}}
+                        <div class="badge">
+                            👑 Master of Learning (25+ Quizzes)
+                        </div>
+                    {{else}}
+                        {{#if user.isPro}}
+                            <div class="badge">
+                                ⭐ Study G.O.A.T (10+ Quizzes)
+                            </div>
+                        {{else}}
+                            <div class="badge">
+                                🎯 Quiz Noob (First Quiz)
+                            </div>
+                        {{/if}}
+                    {{/if}}
+                {{else}}
+                    <p>Take a quiz to earn the first badge</p>
+                {{/if}}
+            </div>
+        </div>
         <div class="stat-card description-card">
             <h3>About Me</h3>
             <div id="description-display" {{#if editing}}style="display: none;"{{/if}}>

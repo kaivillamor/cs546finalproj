@@ -314,6 +314,14 @@ export const buildRoutes = (app) => {
         }
     });
 
+    function determineUserBadge(quizzesTaken) {
+        // if you want to add more badges, make another if and add another to the profile.handlebars
+        if (quizzesTaken >= 25) return 'quiz-master';
+        if (quizzesTaken >= 10) return 'quiz-pro';
+        if (quizzesTaken >= 1) return 'quiz-novice';
+        return null;
+    }
+
     app.get('/profile', async (req, res) => {
         try {
             if (!req.session.user) {
@@ -342,7 +350,11 @@ export const buildRoutes = (app) => {
                     quizzesTaken: user.quizzesTaken || 0,
                     averageScore: user.averageScore || 0,
                     todayQuizzes: todayCount,
-                    description: user.description || ''
+                    description: user.description || '',
+                    // badges stuff (you need to add more if you want more badges)
+                    // implementation kinda sucks for now but it'll work if we do just like basic badges for now
+                    isMaster: (user.quizzesTaken >= 25),
+                    isPro: (user.quizzesTaken >= 10 && user.quizzesTaken < 25)
                 }
             });
         } catch (e) {
