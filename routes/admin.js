@@ -1,6 +1,3 @@
-// Import the express router as shown in the lecture code
-// Note: please do not forget to export the router!
-
 import { Router } from 'express';
 import { quizzes, users } from '../config/mongoCollections.js';
 

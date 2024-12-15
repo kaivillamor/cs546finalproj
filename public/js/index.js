@@ -33,49 +33,14 @@ const searchQuizzes = async (searchTerm) => {
     });
   };
   
-  const startQuiz = async (quizId) => {
-    try {
-      const response = await axios.post(`/api/quizzes/${quizId}/start`);
-      window.location.href = `/quiz/${quizId}`;
-    } catch (error) {
-      console.error('Error starting quiz:', error);
-      showError('Failed to start quiz');
-    }
-  };
-  
-  const saveForLater = async (quizId) => {
-    try {
-      await axios.post(`/api/quizzes/${quizId}/save`);
-      showSuccess('Quiz saved for later');
-    } catch (error) {
-      console.error('Error saving quiz:', error);
-      showError('Failed to save quiz');
-    }
-  };
-  
-  // Error and success message handling
-  const showError = (message) => {
-    const alert = document.getElementById('alert');
-    alert.textContent = message;
-    alert.className = 'alert error';
-    setTimeout(() => alert.className = 'alert hidden', 3000);
-  };
-  
-  const showSuccess = (message) => {
-    const alert = document.getElementById('alert');
-    alert.textContent = message;
-    alert.className = 'alert success';
-    setTimeout(() => alert.className = 'alert hidden', 3000);
-  };
-  
   // Event listeners
   document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('quiz-search');
     if (searchInput) {
-      searchInput.addEventListener('input', (e) => {
-        if (searchTimeout) clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => searchQuizzes(e.target.value), 300);
-      });
+        searchInput.addEventListener('input', (e) => {
+            if (searchTimeout) clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => searchQuizzes(e.target.value), 300);
+        });
     }
   });
   

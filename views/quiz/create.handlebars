@@ -1,0 +1,87 @@
+<div class="create-quiz-container">
+    <h2>Create New Quiz</h2>
+    <form id="quiz-form" method="POST" action="/quiz/create">
+        <div class="form-group">
+            <label for="title">Quiz Title:</label>
+            <input type="text" id="title" name="title" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="description">Description:</label>
+            <textarea id="description" name="description" required></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="category">Category:</label>
+            <select id="category" name="category" required>
+                <option value="">Select a category</option>
+                <option value="math">Mathematics</option>
+                <option value="science">Science</option>
+                <option value="history">History</option>
+                <option value="programming">Programming</option>
+                <option value="general">General Knowledge</option>
+            </select>
+        </div>
+
+        <div id="questions-container">
+            <!-- Questions will be added here -->
+        </div>
+
+        <input type="hidden" id="questions" name="questions" value="[]">
+        
+        <button type="button" class="btn-secondary" onclick="addQuestion()">Add Question</button>
+        <button type="submit" class="btn-primary">Create Quiz</button>
+    </form>
+</div>
+
+<script>
+let questionCount = 0;
+
+function addQuestion() {
+    const container = document.getElementById('questions-container');
+    const questionDiv = document.createElement('div');
+    questionDiv.className = 'question-block';
+    questionDiv.innerHTML = `
+        <div class="form-group">
+            <label>Question ${questionCount + 1}:</label>
+            <input type="text" class="question-text" required oninput="updateQuestions()">
+        </div>
+        <div class="form-group">
+            <label>Answer:</label>
+            <select class="question-answer" required onchange="updateQuestions()">
+                <option value="true">True</option>
+                <option value="false">False</option>
+            </select>
+        </div>
+        <button type="button" class="btn-danger" onclick="this.parentElement.remove(); updateQuestions()">Remove</button>
+    `;
+    container.appendChild(questionDiv);
+    questionCount++;
+    updateQuestions();
+}
+
+function updateQuestions() {
+    const questions = [];
+    document.querySelectorAll('.question-block').forEach((block, index) => {
+        const questionText = block.querySelector('.question-text').value;
+        const answerValue = block.querySelector('.question-answer').value;
+        
+        questions.push({
+            question: questionText,
+            correctAnswer: answerValue === 'true',
+            type: 'true-false'
+        });
+    });
+    document.getElementById('questions').value = JSON.stringify(questions);
+}
+
+// Add form submit handler
+document.getElementById('quiz-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    updateQuestions(); // Update one final time before submitting
+    this.submit();
+});
+
+// Add first question automatically
+document.addEventListener('DOMContentLoaded', addQuestion);
+</script> 

@@ -6,6 +6,7 @@ import adminRoutes from './admin.js';
 import userRoutes from './users.js';
 import { users } from '../config/mongoCollections.js';
 import { validateEmail, validatePassword, validateName, validateUsername, validateRole, hashPassword, comparePasswords } from '../helpers.js';
+import { quizzes } from '../config/mongoCollections.js';
 
 export const buildRoutes = (app) => {
     app.use('/admin', adminRoutes);
@@ -172,6 +173,56 @@ export const buildRoutes = (app) => {
             res.redirect('/');
         }
     });
+
+    // Quiz creation route
+    app.route('/quiz/create')
+        .get((req, res) => {
+            if (!req.session.user) {
+                return res.redirect('/login');
+            }
+            res.render('quiz/create', {
+                title: 'Create Quiz',
+                user: req.session.user
+            });
+        })
+        .post(async (req, res) => {
+            try {
+                if (!req.session.user) {
+                    return res.redirect('/login');
+                }
+
+                const { title, description, category, questions } = req.body;
+                
+                if (!title || !description || !category || !questions) {
+                    throw new Error('All fields are required');
+                }
+
+                const quizCollection = await quizzes();
+                const newQuiz = {
+                    title: title.trim(),
+                    description: description.trim(),
+                    category: category.trim(),
+                    questions: JSON.parse(questions),
+                    createdBy: req.session.user.id,
+                    createdAt: new Date(),
+                    active: true
+                };
+
+                const insertInfo = await quizCollection.insertOne(newQuiz);
+                
+                if (!insertInfo.acknowledged) {
+                    throw new Error('Could not create quiz');
+                }
+
+                res.redirect(req.session.user.role === 'admin' ? '/admin' : '/user');
+            } catch (e) {
+                res.status(400).render('quiz/create', {
+                    title: 'Create Quiz',
+                    error: e.message,
+                    user: req.session.user
+                });
+            }
+        });
 
     // 404 middleware - this should be last
     app.use('*', (req, res) => {

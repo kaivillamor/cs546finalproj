@@ -1,7 +1,10 @@
 <div class="user-dashboard">
     <div class="dashboard-header">
         <h1>Welcome, {{user.username}}</h1>
-        <a href="/logout" class="btn-danger">Logout</a>
+        <div class="header-actions">
+            <a href="/quiz/create" class="btn-primary">Create Quiz</a>
+            <a href="/logout" class="btn-danger">Logout</a>
+        </div>
     </div>
 
     <div class="dashboard-stats">
@@ -37,7 +40,7 @@
                     </div>
                     <div class="quiz-actions">
                         <button class="btn-primary" onclick="startQuiz('{{this._id}}')">Take Quiz</button>
-                        <button class="btn-secondary" onclick="saveForLater('{{this._id}}')">Save</button>
+                        <button class="btn-secondary" onclick="saveForLater('{{this._id}}')">Save for Later</button>
                     </div>
                 </div>
                 {{/each}}

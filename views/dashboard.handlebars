@@ -27,8 +27,8 @@
                     <span>Category: {{this.category}}</span>
                 </div>
                 <div class="quiz-actions">
-                    <a href="/quiz/{{this._id}}" class="btn-primary">Start Quiz</a>
-                    <button class="btn-secondary">Save for Later</button>
+                    <button onclick="startQuiz('{{this._id}}')" class="btn-primary">Take Quiz</button>
+                    <button onclick="saveForLater('{{this._id}}')" class="btn-secondary">Save for Later</button>
                 </div>
             </div>
             {{/each}}
