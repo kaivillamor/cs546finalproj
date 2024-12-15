@@ -433,6 +433,46 @@ export const buildRoutes = (app) => {
         });
     });
 
+    app.post('/quiz/save', async (req, res) => {
+        try {
+            if (!req.session.user) {
+                return res.status(401).json({ error: 'Not logged in' });
+            }
+
+            const { quizId } = req.body;
+            const userCollection = await users();
+            
+            await userCollection.updateOne(
+                { _id: new ObjectId(req.session.user.id) },
+                { $addToSet: { savedQuizzes: quizId } }
+            );
+
+            res.json({ success: true });
+        } catch (e) {
+            res.status(500).json({ error: e.message });
+        }
+    });
+
+    app.post('/quiz/unsave', async (req, res) => {
+        try {
+            if (!req.session.user) {
+                return res.status(401).json({ error: 'Not logged in' });
+            }
+
+            const { quizId } = req.body;
+            const userCollection = await users();
+            
+            await userCollection.updateOne(
+                { _id: new ObjectId(req.session.user.id) },
+                { $pull: { savedQuizzes: quizId } }
+            );
+
+            res.json({ success: true });
+        } catch (e) {
+            res.status(500).json({ error: e.message });
+        }
+    });
+
     app.use('*', (req, res) => {
         res.status(404).render('error', {
             title: '404 Not Found',
