@@ -50,8 +50,12 @@ document.getElementById('quiz-form').addEventListener('submit', async function(e
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ answers })
+            body: JSON.stringify({ answers: answers })
         });
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
 
         const result = await response.json();
         

@@ -256,6 +256,11 @@ export const buildRoutes = (app) => {
             }
 
             const { answers } = req.body;
+            
+            if (!Array.isArray(answers)) {
+                throw new Error('Invalid answers format');
+            }
+
             const quizCollection = await quizzes();
             const userCollection = await users();
             const quiz = await quizCollection.findOne({ _id: new ObjectId(req.params.id) });
@@ -264,18 +269,24 @@ export const buildRoutes = (app) => {
                 throw new Error('Quiz not found');
             }
 
-            const parsedAnswers = JSON.parse(answers);
             let score = 0;
             
             quiz.questions.forEach((question, index) => {
-                if (question.correctAnswer === parsedAnswers[index]) {
+                const submittedAnswer = answers[index];
+                const correctAnswer = question.correctAnswer;
+                
+                if (submittedAnswer === correctAnswer) {
                     score++;
                 }
             });
 
             const scorePercentage = Math.round((score / quiz.questions.length) * 100);
 
-            // Update user's quiz results
+            // Get current user to calculate new average
+            const user = await userCollection.findOne({ _id: new ObjectId(req.session.user.id) });
+            const currentTotal = (user.quizzesTaken || 0) * (user.averageScore || 0);
+            const newAverage = Math.round((currentTotal + scorePercentage) / (user.quizzesTaken + 1));
+
             await userCollection.updateOne(
                 { _id: new ObjectId(req.session.user.id) },
                 {
@@ -287,7 +298,8 @@ export const buildRoutes = (app) => {
                             dateTaken: new Date()
                         }
                     },
-                    $inc: { quizzesTaken: 1 }
+                    $inc: { quizzesTaken: 1 },
+                    $set: { averageScore: newAverage }
                 }
             );
 
