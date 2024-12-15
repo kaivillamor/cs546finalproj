@@ -15,18 +15,18 @@ router.get('/', async (req, res) => {
 
         const userCollection = await users();
         const quizCollection = await quizzes();
-        
+
         let user = await userCollection.findOne({ _id: new ObjectId(req.session.user.id) });
         if (!user.quizResults) {
             await userCollection.updateOne(
                 { _id: new ObjectId(req.session.user.id) },
-                { 
-                    $set: { 
+                {
+                    $set: {
                         quizResults: [],
                         quizzesTaken: 0,
                         averageScore: 0,
                         todayQuizzes: 0
-                    } 
+                    }
                 }
             );
             user = await userCollection.findOne({ _id: new ObjectId(req.session.user.id) });
@@ -39,7 +39,7 @@ router.get('/', async (req, res) => {
             .toArray();
 
         let formattedQuizzes = [];
-        for(let quiz of availableQuizzes) {
+        for (let quiz of availableQuizzes) {
             formattedQuizzes.push({
                 _id: quiz._id,
                 title: quiz.title,
@@ -51,16 +51,16 @@ router.get('/', async (req, res) => {
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        
+
         let todayCount = 0;
-        for(let result of user.quizResults) {
-            if(result.dateTaken >= today) {
+        for (let result of user.quizResults) {
+            if (result.dateTaken >= today) {
                 todayCount++;
             }
         }
 
         let recentResults = [];
-        for(let i = 0; i < 5 && i < user.quizResults.length; i++) {
+        for (let i = 0; i < 5 && i < user.quizResults.length; i++) {
             let result = user.quizResults[i];
             let date = result.dateTaken;
             recentResults.push({

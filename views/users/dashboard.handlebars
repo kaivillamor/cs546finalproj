@@ -39,7 +39,7 @@
                         <span>Category: {{this.category}}</span>
                     </div>
                     <div class="quiz-actions">
-                        <button class="btn-primary" onclick="startQuiz('{{this._id}}')">Take Quiz</button>
+                        <button class="btn-primary" onclick="window.location.href='/quiz/{{this._id}}'">Take Quiz</button>
                         <button class="btn-secondary" onclick="saveForLater('{{this._id}}')">Save for Later</button>
                     </div>
                 </div>

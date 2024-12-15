@@ -7,6 +7,7 @@ import userRoutes from './users.js';
 import { users } from '../config/mongoCollections.js';
 import { validateEmail, validatePassword, validateName, validateUsername, validateRole, hashPassword, comparePasswords } from '../helpers.js';
 import { quizzes } from '../config/mongoCollections.js';
+import { ObjectId } from 'mongodb';
 
 export const buildRoutes = (app) => {
     app.use('/admin', adminRoutes);
@@ -215,6 +216,102 @@ export const buildRoutes = (app) => {
                 });
             }
         });
+
+    app.get('/quiz/:id', async (req, res) => {
+        try {
+            if (!req.session.user) {
+                return res.redirect('/login');
+            }
+
+            const quizCollection = await quizzes();
+            const quiz = await quizCollection.findOne({ _id: new ObjectId(req.params.id) });
+            
+            if (!quiz) {
+                throw new Error('Quiz not found');
+            }
+
+            res.render('quiz/take', {
+                title: quiz.title,
+                quiz: {
+                    _id: quiz._id,
+                    title: quiz.title,
+                    description: quiz.description,
+                    questions: quiz.questions,
+                    category: quiz.category
+                },
+                user: req.session.user
+            });
+        } catch (e) {
+            res.status(404).render('error', {
+                title: 'Error',
+                error: e.message
+            });
+        }
+    });
+
+    app.post('/quiz/:id/submit', async (req, res) => {
+        try {
+            if (!req.session.user) {
+                return res.redirect('/login');
+            }
+
+            const { answers } = req.body;
+            
+            if (!Array.isArray(answers)) {
+                throw new Error('Invalid answers format');
+            }
+
+            const quizCollection = await quizzes();
+            const userCollection = await users();
+            const quiz = await quizCollection.findOne({ _id: new ObjectId(req.params.id) });
+
+            if (!quiz) {
+                throw new Error('Quiz not found');
+            }
+
+            let score = 0;
+            
+            quiz.questions.forEach((question, index) => {
+                const submittedAnswer = answers[index];
+                const correctAnswer = question.correctAnswer;
+                
+                if (submittedAnswer === correctAnswer) {
+                    score++;
+                }
+            });
+
+            const scorePercentage = Math.round((score / quiz.questions.length) * 100);
+
+            // Get current user to calculate new average
+            const user = await userCollection.findOne({ _id: new ObjectId(req.session.user.id) });
+            const currentTotal = (user.quizzesTaken || 0) * (user.averageScore || 0);
+            const newAverage = Math.round((currentTotal + scorePercentage) / (user.quizzesTaken + 1));
+
+            await userCollection.updateOne(
+                { _id: new ObjectId(req.session.user.id) },
+                {
+                    $push: {
+                        quizResults: {
+                            quizId: quiz._id,
+                            quizTitle: quiz.title,
+                            score: scorePercentage,
+                            dateTaken: new Date()
+                        }
+                    },
+                    $inc: { quizzesTaken: 1 },
+                    $set: { averageScore: newAverage }
+                }
+            );
+
+            res.json({
+                score: scorePercentage,
+                totalQuestions: quiz.questions.length,
+                correctAnswers: score
+            });
+        } catch (e) {
+            res.status(400).json({ error: e.message });
+        }
+    });
 
     app.use('*', (req, res) => {
         res.status(404).render('error', {
