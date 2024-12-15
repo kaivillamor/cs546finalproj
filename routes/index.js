@@ -1,5 +1,4 @@
 //Here you will require route files and export them as used in previous labs.
-//Here you will import route files and export them as used in previous labs
 
 import { Router } from "express";
 import adminRoutes from './admin.js';
@@ -12,7 +11,7 @@ import { ObjectId } from 'mongodb';
 export const buildRoutes = (app) => {
     app.use('/admin', adminRoutes);
     app.use('/user', userRoutes);
-    
+
     app.get('/', (req, res) => {
         res.render('home', {
             title: 'Quiz App'
@@ -125,7 +124,7 @@ export const buildRoutes = (app) => {
                 console.log('Attempting to insert user:', { ...newUser, password: '[HIDDEN]' });
 
                 const insertInfo = await userCollection.insertOne(newUser);
-                
+
                 if (!insertInfo.acknowledged) {
                     throw new Error('Could not add user');
                 }
@@ -186,7 +185,7 @@ export const buildRoutes = (app) => {
                 }
 
                 const { title, description, category, questions } = req.body;
-                
+
                 if (!title || !description || !category || !questions) {
                     throw new Error('All fields are required');
                 }
@@ -203,7 +202,7 @@ export const buildRoutes = (app) => {
                 };
 
                 const insertInfo = await quizCollection.insertOne(newQuiz);
-                
+
                 if (!insertInfo.acknowledged) {
                     throw new Error('Could not create quiz');
                 }
@@ -226,7 +225,7 @@ export const buildRoutes = (app) => {
 
             const quizCollection = await quizzes();
             const quiz = await quizCollection.findOne({ _id: new ObjectId(req.params.id) });
-            
+
             if (!quiz) {
                 throw new Error('Quiz not found');
             }
@@ -271,7 +270,8 @@ export const buildRoutes = (app) => {
             }
 
             let score = 0;
-            
+            const resultId = new ObjectId(); // Generate new ObjectId for the result
+
             quiz.questions.forEach((question, index) => {
                 const submittedAnswer = answers[index];
                 const correctAnswer = question.correctAnswer;
@@ -283,7 +283,6 @@ export const buildRoutes = (app) => {
 
             const scorePercentage = Math.round((score / quiz.questions.length) * 100);
 
-            // Get current user to calculate new average
             const user = await userCollection.findOne({ _id: new ObjectId(req.session.user.id) });
             const currentTotal = (user.quizzesTaken || 0) * (user.averageScore || 0);
             const newAverage = Math.round((currentTotal + scorePercentage) / (user.quizzesTaken + 1));
@@ -293,6 +292,7 @@ export const buildRoutes = (app) => {
                 {
                     $push: {
                         quizResults: {
+                            _id: resultId,
                             quizId: quiz._id,
                             quizTitle: quiz.title,
                             score: scorePercentage,
@@ -307,7 +307,8 @@ export const buildRoutes = (app) => {
             res.json({
                 score: scorePercentage,
                 totalQuestions: quiz.questions.length,
-                correctAnswers: score
+                correctAnswers: score,
+                resultId: resultId
             });
         } catch (e) {
             res.status(400).json({ error: e.message });
@@ -373,7 +374,7 @@ export const buildRoutes = (app) => {
 
             const { description } = req.body;
             const userCollection = await users();
-            
+
             await userCollection.updateOne(
                 { _id: new ObjectId(req.session.user.id) },
                 { $set: { description: description } }
@@ -441,7 +442,7 @@ export const buildRoutes = (app) => {
 
             const { quizId } = req.body;
             const userCollection = await users();
-            
+
             await userCollection.updateOne(
                 { _id: new ObjectId(req.session.user.id) },
                 { $addToSet: { savedQuizzes: quizId } }
@@ -461,7 +462,7 @@ export const buildRoutes = (app) => {
 
             const { quizId } = req.body;
             const userCollection = await users();
-            
+
             await userCollection.updateOne(
                 { _id: new ObjectId(req.session.user.id) },
                 { $pull: { savedQuizzes: quizId } }

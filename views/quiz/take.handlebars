@@ -63,12 +63,10 @@ document.getElementById('quiz-form').addEventListener('submit', async function(e
             throw new Error(result.error);
         }
 
-        // Display results
         document.getElementById('score').textContent = result.score;
         document.getElementById('correct-answers').textContent = result.correctAnswers;
         document.getElementById('total-questions').textContent = result.totalQuestions;
         
-        // Hide form and show results
         this.style.display = 'none';
         document.getElementById('results').style.display = 'block';
 
