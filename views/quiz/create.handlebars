@@ -24,7 +24,6 @@
         </div>
 
         <div id="questions-container">
-            <!-- Questions will be added here -->
         </div>
 
         <input type="hidden" id="questions" name="questions" value="[]">
@@ -41,20 +40,59 @@ function addQuestion() {
     const container = document.getElementById('questions-container');
     const questionDiv = document.createElement('div');
     questionDiv.className = 'question-block';
-    questionDiv.innerHTML = `
-        <div class="form-group">
-            <label>Question ${questionCount + 1}:</label>
-            <input type="text" class="question-text" required oninput="updateQuestions()">
-        </div>
-        <div class="form-group">
-            <label>Answer:</label>
-            <select class="question-answer" required onchange="updateQuestions()">
-                <option value="true">True</option>
-                <option value="false">False</option>
-            </select>
-        </div>
-        <button type="button" class="btn-danger" onclick="this.parentElement.remove(); updateQuestions()">Remove</button>
-    `;
+
+    const questionGroup = document.createElement('div');
+    questionGroup.className = 'form-group';
+
+    const questionLabel = document.createElement('label');
+    questionLabel.textContent = `Question ${questionCount + 1}:`;
+
+    const questionInput = document.createElement('input');
+    questionInput.type = 'text';
+    questionInput.className = 'question-text';
+    questionInput.required = true;
+    questionInput.addEventListener('input', updateQuestions);
+
+    const answerGroup = document.createElement('div');
+    answerGroup.className = 'form-group';
+
+    const answerLabel = document.createElement('label');
+    answerLabel.textContent = 'Answer:';
+
+    const answerSelect = document.createElement('select');
+    answerSelect.className = 'question-answer';
+    answerSelect.required = true;
+    answerSelect.addEventListener('change', updateQuestions);
+
+    const trueOption = document.createElement('option');
+    trueOption.value = 'true';
+    trueOption.textContent = 'True';
+
+    const falseOption = document.createElement('option');
+    falseOption.value = 'false';
+    falseOption.textContent = 'False';
+
+    const removeButton = document.createElement('button');
+    removeButton.type = 'button';
+    removeButton.className = 'btn-danger';
+    removeButton.textContent = 'Remove';
+    removeButton.addEventListener('click', function() {
+        questionDiv.remove();
+        updateQuestions();
+    });
+
+    answerSelect.appendChild(trueOption);
+    answerSelect.appendChild(falseOption);
+
+    questionGroup.appendChild(questionLabel);
+    questionGroup.appendChild(questionInput);
+    answerGroup.appendChild(answerLabel);
+    answerGroup.appendChild(answerSelect);
+
+    questionDiv.appendChild(questionGroup);
+    questionDiv.appendChild(answerGroup);
+    questionDiv.appendChild(removeButton);
+
     container.appendChild(questionDiv);
     questionCount++;
     updateQuestions();
@@ -75,13 +113,11 @@ function updateQuestions() {
     document.getElementById('questions').value = JSON.stringify(questions);
 }
 
-// Add form submit handler
 document.getElementById('quiz-form').addEventListener('submit', function(e) {
     e.preventDefault();
-    updateQuestions(); // Update one final time before submitting
+    updateQuestions();
     this.submit();
 });
 
-// Add first question automatically
 document.addEventListener('DOMContentLoaded', addQuestion);
 </script> 
