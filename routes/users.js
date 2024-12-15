@@ -32,6 +32,14 @@ router.get('/', async (req, res) => {
             user = await userCollection.findOne({ _id: new ObjectId(req.session.user.id) });
         }
 
+        if (!user.savedQuizzes) {
+            await userCollection.updateOne(
+                { _id: new ObjectId(req.session.user.id) },
+                { $set: { savedQuizzes: [] } }
+            );
+            user = await userCollection.findOne({ _id: new ObjectId(req.session.user.id) });
+        }
+
         const availableQuizzes = await quizCollection
             .find({ active: true })
             .sort({ createdAt: -1 })
@@ -60,14 +68,34 @@ router.get('/', async (req, res) => {
         }
 
         let recentResults = [];
-        for (let i = 0; i < 5 && i < user.quizResults.length; i++) {
-            let result = user.quizResults[i];
-            let date = result.dateTaken;
-            recentResults.push({
+        if (user.quizResults && user.quizResults.length > 0) {
+            const sortedResults = [...user.quizResults].sort((a, b) => 
+                new Date(b.dateTaken) - new Date(a.dateTaken)
+            );
+            
+            recentResults = sortedResults.slice(0, 5).map(result => ({
                 quizTitle: result.quizTitle,
                 score: result.score,
-                date: (date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear()
-            });
+                date: (result.dateTaken.getMonth() + 1) + '/' + result.dateTaken.getDate() + '/' + result.dateTaken.getFullYear(),
+                _id: result.quizId
+            }));
+        }
+
+        let savedQuizzes = [];
+        if (user.savedQuizzes && user.savedQuizzes.length > 0) {
+            const savedQuizIds = user.savedQuizzes.map(id => new ObjectId(id));
+            const savedQuizzesData = await quizCollection.find({ 
+                _id: { $in: savedQuizIds },
+                active: true 
+            }).toArray();
+            
+            savedQuizzes = savedQuizzesData.map(quiz => ({
+                _id: quiz._id,
+                title: quiz.title,
+                description: quiz.description,
+                questionCount: quiz.questions.length,
+                category: quiz.category || 'General'
+            }));
         }
 
         res.render('users/dashboard', {
@@ -80,7 +108,8 @@ router.get('/', async (req, res) => {
             },
             availableQuizzes: formattedQuizzes,
             inProgressQuizzes: [],
-            recentResults: recentResults
+            recentResults: recentResults,
+            savedQuizzes: savedQuizzes
         });
     } catch (e) {
         res.status(500).render('error', {
