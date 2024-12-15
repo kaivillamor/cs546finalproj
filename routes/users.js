@@ -3,6 +3,7 @@
 
 import { Router } from 'express';
 import { quizzes, users } from '../config/mongoCollections.js';
+import { ObjectId } from 'mongodb';
 
 const router = Router();
 
@@ -12,34 +13,63 @@ router.get('/', async (req, res) => {
             return res.redirect('/login');
         }
 
+        const userCollection = await users();
         const quizCollection = await quizzes();
-        // Get 5 most recent quizzes
+        
+        // Get user and initialize if quizResults doesn't exist
+        let user = await userCollection.findOne({ _id: new ObjectId(req.session.user.id) });
+        if (!user.quizResults) {
+            await userCollection.updateOne(
+                { _id: new ObjectId(req.session.user.id) },
+                { 
+                    $set: { 
+                        quizResults: [],
+                        quizzesTaken: 0,
+                        averageScore: 0,
+                        todayQuizzes: 0
+                    } 
+                }
+            );
+            user = await userCollection.findOne({ _id: new ObjectId(req.session.user.id) });
+        }
+
+        // Get available quizzes
         const availableQuizzes = await quizCollection
             .find({ active: true })
             .sort({ createdAt: -1 })
-            .limit(3)
+            .limit(5)
             .toArray();
 
-        // Format quiz data for display
         const formattedQuizzes = availableQuizzes.map(quiz => ({
             _id: quiz._id,
             title: quiz.title,
             description: quiz.description,
             questionCount: quiz.questions.length,
-            category: quiz.category || 'General' // Default category if none specified
+            category: quiz.category || 'General'
         }));
+
+        // Calculate today's quizzes
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const todayQuizzes = user.quizResults.filter(result => 
+            result.dateTaken >= today
+        ).length;
 
         res.render('users/dashboard', {
             title: 'User Dashboard',
             user: {
-                username: req.session.user.username,
-                quizzesTaken: 0, // You can update these with real metrics later
-                averageScore: 0,
-                todayQuizzes: 0
+                username: user.username,
+                quizzesTaken: user.quizzesTaken || 0,
+                averageScore: user.averageScore || 0,
+                todayQuizzes: todayQuizzes
             },
             availableQuizzes: formattedQuizzes,
             inProgressQuizzes: [],
-            recentResults: []
+            recentResults: user.quizResults.slice(0, 5).map(result => ({
+                quizTitle: result.quizTitle,
+                score: result.score,
+                date: result.dateTaken.toLocaleDateString()
+            }))
         });
     } catch (e) {
         res.status(500).render('error', {
