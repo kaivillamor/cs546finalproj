@@ -15,54 +15,45 @@ router.get('/', async (req, res) => {
 
         const userCollection = await users();
         const quizCollection = await quizzes();
+        const user = await userCollection.findOne({ _id: new ObjectId(req.session.user.id) });
 
-        let user = await userCollection.findOne({ _id: new ObjectId(req.session.user.id) });
-        if (!user.quizResults) {
-            await userCollection.updateOne(
-                { _id: new ObjectId(req.session.user.id) },
-                {
-                    $set: {
-                        quizResults: [],
-                        quizzesTaken: 0,
-                        averageScore: 0,
-                        todayQuizzes: 0
-                    }
-                }
-            );
-            user = await userCollection.findOne({ _id: new ObjectId(req.session.user.id) });
+        if (!user) {
+            throw new Error('User not found');
         }
 
-        if (!user.savedQuizzes) {
-            await userCollection.updateOne(
-                { _id: new ObjectId(req.session.user.id) },
-                { $set: { savedQuizzes: [] } }
-            );
-            user = await userCollection.findOne({ _id: new ObjectId(req.session.user.id) });
+        // Fetch available quizzes
+        const availableQuizzes = await quizCollection.find({ active: true }).toArray();
+        let formattedQuizzes = [];
+        for (let quiz of availableQuizzes) {
+            formattedQuizzes.push({
+                _id: quiz._id,
+                title: quiz.title,
+                description: quiz.description,
+                questionCount: quiz.questions.length,
+                category: quiz.category || 'General',
+                creator: quiz.creatorUsername || 'Unknown'
+            });
         }
 
-        const availableQuizzes = await quizCollection
-            .find({ active: true })
-            .sort({ createdAt: -1 })
-            .limit(5)
+        // Fetch quizzes created by the user
+        const createdQuizzes = await quizCollection
+            .find({ creatorUsername: user.username })
             .toArray();
 
-            let formattedQuizzes = [];
-            for (let quiz of availableQuizzes) {
-                formattedQuizzes.push({
-                    _id: quiz._id,
-                    title: quiz.title,
-                    description: quiz.description,
-                    questionCount: quiz.questions.length,
-                    category: quiz.category || 'General',
-                    creator: quiz.creatorUsername || 'Unknown'
-                });
-            }
+        const formattedCreatedQuizzes = createdQuizzes.map(quiz => ({
+            _id: quiz._id,
+            title: quiz.title,
+            description: quiz.description,
+            questionCount: quiz.questions.length,
+            category: quiz.category || 'General',
+            timesTaken: quiz.timesTaken || 0
+        }));
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
         let todayCount = 0;
-        for (let result of user.quizResults) {
+        for (let result of user.quizResults || []) {
             if (result.dateTaken >= today) {
                 todayCount++;
             }
@@ -118,6 +109,7 @@ router.get('/', async (req, res) => {
                 todayQuizzes: todayCount
             },
             availableQuizzes: formattedQuizzes,
+            createdQuizzes: formattedCreatedQuizzes,
             inProgressQuizzes: [],
             recentResults: recentResults,
             savedQuizzes: savedQuizzes,

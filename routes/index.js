@@ -546,6 +546,29 @@ export const buildRoutes = (app) => {
         }
     });
 
+    app.post('/quiz/:id/delete', async (req, res) => {
+        try {
+            if (!req.session.user) {
+                return res.status(401).json({ error: 'Not logged in' });
+            }
+    
+            const quizCollection = await quizzes();
+            const quiz = await quizCollection.findOne({ 
+                _id: new ObjectId(req.params.id),
+                creatorUsername: req.session.user.username 
+            });
+    
+            if (!quiz) {
+                return res.status(404).json({ error: 'Quiz not found or unauthorized' });
+            }
+    
+            await quizCollection.deleteOne({ _id: new ObjectId(req.params.id) });
+            res.json({ success: true });
+        } catch (e) {
+            res.status(500).json({ error: e.message });
+        }
+    });
+
     app.use('*', (req, res) => {
         res.status(404).render('error', {
             title: '404 Not Found',
