@@ -9,6 +9,15 @@ router.get('/', async (req, res) => {
         const quizCollection = await quizzes();
         const userCollection = await users();
         
+        const allUsers = await userCollection.find({}, {
+            projection: {
+                username: 1,
+                email: 1,
+                quizzesTaken: 1,
+                averageScore: 1
+            }
+        }).toArray();
+
         const totalUsers = await userCollection.countDocuments();
         const totalQuizzes = await quizCollection.countDocuments();
         const today = new Date();
@@ -97,13 +106,42 @@ router.get('/', async (req, res) => {
                     recentBadges: recentBadges.slice(0, 5)
                 },
                 categoryPerformance: averageScoresByCategory
-            }
+            },
+            users: allUsers
         });
     } catch (e) {
         res.status(500).render('error', {
             title: 'Error',
             error: e.message
         });
+    }
+});
+
+router.get('/api/users/search', async (req, res) => {
+    try {
+        const userCollection = await users();
+        const searchTerm = req.query.term || '';
+
+        let query = {};
+        if (searchTerm) {
+            query = {
+                username: { $regex: searchTerm, $options: 'i' }
+            };
+        }
+
+        const searchResults = await userCollection.find(query, {
+            projection: {
+                username: 1,
+                email: 1,
+                quizzesTaken: 1,
+                averageScore: 1
+            }
+        }).limit(20).toArray();
+
+        res.json(searchResults);
+    } catch (e) {
+        console.error('Search error:', e);
+        res.status(500).json({ error: 'Search failed' });
     }
 });
 

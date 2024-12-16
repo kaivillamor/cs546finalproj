@@ -26,23 +26,29 @@
         <div class="search-bar">
             <input type="text" placeholder="Search users..." id="user-search">
         </div>
-        <div class="user-list">
+        <div class="user-list users-grid">
             {{#each users}}
-            <div class="user-card">
+            <div class="stat-card user-card">
                 <div class="user-info">
                     <h3>{{this.username}}</h3>
                     <p>{{this.email}}</p>
                 </div>
                 <div class="user-stats">
-                    <span>Quizzes: {{this.quizzesTaken}}</span>
-                    <span>Avg Score: {{this.averageScore}}%</span>
+                    <div class="stat">
+                        <span class="label">Quizzes Taken:</span>
+                        <span class="value">{{this.quizzesTaken}}</span>
+                    </div>
+                    <div class="stat">
+                        <span class="label">Average Score:</span>
+                        <span class="value">{{this.averageScore}}%</span>
+                    </div>
                 </div>
-                <div class="action-buttons">
-                    <button class="btn-primary" onclick="viewUser('{{this._id}}')">View Details</button>
-                    <button class="btn-warning" onclick="editUser('{{this._id}}')">Edit</button>
-                    <button class="btn-danger" onclick="deactivateUser('{{this._id}}')">Deactivate</button>
+                <div class="card-actions">
+                    <button class="btn-danger" onclick="banUser('{{this._id}}')">Ban User</button>
                 </div>
             </div>
+            {{else}}
+            <div class="no-results">No users found</div>
             {{/each}}
         </div>
     </section>

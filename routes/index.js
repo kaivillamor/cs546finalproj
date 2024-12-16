@@ -545,6 +545,40 @@ export const buildRoutes = (app) => {
         }
     });
 
+    app.get('/api/users/search', async (req, res) => {
+        try {
+            if (!req.session.user) {
+                return res.status(401).json({ error: 'Not authenticated' });
+            }
+
+            const searchTerm = req.query.term || '';
+            const userCollection = await users();
+
+            let query = {};
+            if (searchTerm) {
+                query = {
+                    username: { $regex: searchTerm, $options: 'i' }
+                };
+            }
+
+            const searchResults = await userCollection
+                .find(query)
+                .limit(20)
+                .toArray();
+
+            const formattedResults = searchResults.map(user => ({
+                _id: user._id,
+                username: user.username,
+                quizzesTaken: user.quizzesTaken || 0,
+                averageScore: user.averageScore || 0
+            }));
+
+            res.json(formattedResults);
+        } catch (e) {
+            res.status(500).json({ error: e.message });
+        }
+    });
+
     app.use('*', (req, res) => {
         res.status(404).render('error', {
             title: '404 Not Found',
