@@ -95,14 +95,21 @@
         <!-- Recent Results Section -->
         <section class="results-section">
             <h2>Recent Results</h2>
-            <div class="results-list">
+            <div class="results-grid">
                 {{#each recentResults}}
-                <div class="result-card">
+                <div class="stat-card result-card">
                     <h3>{{this.quizTitle}}</h3>
-                    <p>Score: {{this.score}}%</p>
-                    <p>Date: {{this.date}}</p>
-                    <button class="btn-secondary" onclick="window.location.href='/quiz/{{this.quizId}}/review'">Review
-                        Quiz</button>
+                    <div class="result-details">
+                        <div class="score-display">
+                            <span class="score">{{this.score}}%</span>
+                        </div>
+                        <p class="date">Taken on {{this.date}}</p>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn-secondary" onclick="window.location.href='/quiz/{{this.quizId}}/review'">
+                            Review Quiz
+                        </button>
+                    </div>
                 </div>
                 {{else}}
                 <div class="no-results">
