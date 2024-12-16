@@ -73,11 +73,12 @@ router.get('/', async (req, res) => {
                 new Date(b.dateTaken) - new Date(a.dateTaken)
             );
             
-            recentResults = sortedResults.slice(0, 5).map(result => ({
+            recentResults = sortedResults.slice(0, 10).map(result => ({
                 quizTitle: result.quizTitle,
                 score: result.score,
                 date: (result.dateTaken.getMonth() + 1) + '/' + result.dateTaken.getDate() + '/' + result.dateTaken.getFullYear(),
-                _id: result.quizId
+                quizId: result.quizId,
+                _id: result._id
             }));
         }
 
