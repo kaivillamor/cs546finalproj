@@ -10,7 +10,9 @@ body {
     padding: 20px;
 }
 
-.btn-primary, .btn-secondary, .btn-danger {
+.btn-primary,
+.btn-secondary,
+.btn-danger {
     padding: 8px 16px;
     border: none;
     cursor: pointer;
@@ -41,13 +43,17 @@ body {
     margin-bottom: 5px;
 }
 
-.form-group input, .form-group select,.form-group textarea {
+.form-group input,
+.form-group select,
+.form-group textarea {
     width: 100%;
     padding: 8px;
     border: 1px solid #ddd;
 }
 
-.quiz-card, .user-card, .stat-card {
+.quiz-card,
+.user-card,
+.stat-card {
     border: 1px solid #ddd;
     padding: 15px;
     margin-bottom: 15px;
@@ -66,10 +72,12 @@ body {
     margin: 10px 0;
 }
 
-h1, h2, h3 {
-  margin-bottom: 15px;
+h1,
+h2,
+h3 {
+    margin-bottom: 15px;
 }
-  
+
 section {
     margin-bottom: 30px;
 }
@@ -286,7 +294,7 @@ section {
 .result-card {
     background: #ffffff;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     padding: 15px;
     transition: transform 0.2s;
 }
@@ -332,5 +340,34 @@ section {
     padding: 20px;
     background: #f5f5f5;
     border-radius: 8px;
+    color: #666;
+}
+
+.leaderboard-section {
+    margin-top: 20px;
+}
+
+.leaderboard-card {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 5px;
+    background: #f8f9fa;
+}
+
+.rank {
+    margin-right: 15px;
+    color: #666;
+}
+
+.user-info {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.no-leaders {
+    text-align: center;
+    padding: 10px;
     color: #666;
 }

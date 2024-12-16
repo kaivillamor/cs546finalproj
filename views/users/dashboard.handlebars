@@ -24,6 +24,24 @@
     </div>
 
     <div class="dashboard-sections">
+        <!-- Leaderboard Section -->
+        <section class="leaderboard-section">
+            <h2>Leaderboard</h2>
+            <div class="leaderboard-grid">
+                {{#each leaderboard}}
+                <div class="leaderboard-card">
+                    <div class="rank">{{add @index 1}}</div>
+                    <div class="user-info">
+                        <span class="username">{{this.username}}</span>
+                        <span class="score">{{this.averageScore}}%</span>
+                    </div>
+                </div>
+                {{else}}
+                <div class="no-leaders">No quiz results yet</div>
+                {{/each}}
+            </div>
+        </section>
+
         <!-- Available Quizzes Section -->
         <section class="quiz-section">
             <h2>Available Quizzes</h2>

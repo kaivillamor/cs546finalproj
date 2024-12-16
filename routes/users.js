@@ -69,10 +69,10 @@ router.get('/', async (req, res) => {
 
         let recentResults = [];
         if (user.quizResults && user.quizResults.length > 0) {
-            const sortedResults = [...user.quizResults].sort((a, b) => 
+            const sortedResults = [...user.quizResults].sort((a, b) =>
                 new Date(b.dateTaken) - new Date(a.dateTaken)
             );
-            
+
             recentResults = sortedResults.slice(0, 10).map(result => ({
                 quizTitle: result.quizTitle,
                 score: result.score,
@@ -85,11 +85,11 @@ router.get('/', async (req, res) => {
         let savedQuizzes = [];
         if (user.savedQuizzes && user.savedQuizzes.length > 0) {
             const savedQuizIds = user.savedQuizzes.map(id => new ObjectId(id));
-            const savedQuizzesData = await quizCollection.find({ 
+            const savedQuizzesData = await quizCollection.find({
                 _id: { $in: savedQuizIds },
-                active: true 
+                active: true
             }).toArray();
-            
+
             savedQuizzes = savedQuizzesData.map(quiz => ({
                 _id: quiz._id,
                 title: quiz.title,
@@ -98,6 +98,15 @@ router.get('/', async (req, res) => {
                 category: quiz.category || 'General'
             }));
         }
+
+        const leaderboardData = await userCollection
+            .find(
+                { quizzesTaken: { $gt: 0 } },
+                { projection: { username: 1, averageScore: 1 } }
+            )
+            .sort({ averageScore: -1 })
+            .limit(10)
+            .toArray();
 
         res.render('users/dashboard', {
             title: 'User Dashboard',
@@ -110,7 +119,8 @@ router.get('/', async (req, res) => {
             availableQuizzes: formattedQuizzes,
             inProgressQuizzes: [],
             recentResults: recentResults,
-            savedQuizzes: savedQuizzes
+            savedQuizzes: savedQuizzes,
+            leaderboard: leaderboardData
         });
     } catch (e) {
         res.status(500).render('error', {
