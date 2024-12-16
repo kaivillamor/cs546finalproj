@@ -54,6 +54,22 @@
     </section>
     <section class="admin-section">
         <h2>Quiz Management</h2>
+        <div id="quizzes-grid" class="quizzes-grid">
+            {{#each allQuizzes}}
+            <div class="quiz-card">
+                <h3>{{this.title}}</h3>
+                <div class="quiz-meta">
+                    <span>Questions: {{this.questionCount}}</span>
+                    <span>Category: {{this.category}}</span>
+                </div>
+                <div class="quiz-actions">
+                    <button class="btn-danger" onclick="deleteQuiz('{{this._id}}')">Delete Quiz</button>
+                </div>
+            </div>
+            {{else}}
+            <div class="no-results">No quizzes found</div>
+            {{/each}}
+        </div>
     </section>
     <section class="admin-section">
         <h2>Reports & Analytics</h2>
