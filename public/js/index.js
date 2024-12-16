@@ -112,6 +112,30 @@ const searchQuizzes = async (searchTerm) => {
     }
   }
   
+  async function deleteQuiz(quizId) {
+    if (!confirm('Are you sure you want to delete this quiz? This action cannot be undone.')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/quiz/${quizId}/delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to delete quiz');
+        }
+
+        window.location.reload();
+    } catch (error) {
+        console.error('Error deleting quiz:', error);
+        alert('Failed to delete quiz');
+    }
+}
+
   document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('quiz-search');
     const searchButton = document.getElementById('search-button');
@@ -171,7 +195,7 @@ const searchQuizzes = async (searchTerm) => {
             e.preventDefault();
             performSearch();
         });
-        
+
         searchInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();

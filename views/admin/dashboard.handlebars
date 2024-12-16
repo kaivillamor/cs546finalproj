@@ -21,65 +21,34 @@
             <p>{{stats.quizzesToday}}</p>
         </div>
     </div>
-    <section class="admin-section">
-        <h2>User Management</h2>
+
+    <!-- Quizzes Management Section -->
+    <section class="quiz-section">
+        <h2>Manage Quizzes</h2>
         <div class="search-bar">
-            <input type="text" placeholder="Search users..." id="user-search">
+            <input type="text" placeholder="Search quizzes..." id="quiz-search">
+            <button class="btn-primary" id="search-button">Search</button>
         </div>
-        <div class="user-list">
-            {{#each users}}
-            <div class="user-card">
-                <div class="user-info">
-                    <h3>{{this.username}}</h3>
-                    <p>{{this.email}}</p>
-                </div>
-                <div class="user-stats">
-                    <span>Quizzes: {{this.quizzesTaken}}</span>
-                    <span>Avg Score: {{this.averageScore}}%</span>
-                </div>
-                <div class="action-buttons">
-                    <button class="btn-primary" onclick="viewUser('{{this._id}}')">View Details</button>
-                    <button class="btn-warning" onclick="editUser('{{this._id}}')">Edit</button>
-                    <button class="btn-danger" onclick="deactivateUser('{{this._id}}')">Deactivate</button>
-                </div>
-            </div>
-            {{/each}}
-        </div>
-    </section>
-    <section class="admin-section">
-        <h2>Quiz Management</h2>
-        <div class="action-buttons">
-            <button class="btn-primary" onclick="createQuiz()">Create New Quiz</button>
-            <button class="btn-secondary" onclick="viewAllQuizzes()">View All Quizzes</button>
-        </div>
-        <div class="quiz-list">
+        <div class="quiz-grid" id="admin-quiz-list">
             {{#each quizzes}}
             <div class="quiz-card">
                 <h3>{{this.title}}</h3>
+                <p>{{this.description}}</p>
+                <div class="quiz-meta">
+                    <span>Questions: {{this.questionCount}}</span>
+                    <span>Category: {{this.category}}</span>
+                    <span>Created by: {{this.creator}}</span>
+                </div>
                 <div class="quiz-stats">
                     <span>Times Taken: {{this.timesTaken}}</span>
                     <span>Avg Score: {{this.averageScore}}%</span>
                 </div>
-                <div class="action-buttons">
-                    <button class="btn-primary" onclick="editQuiz('{{this._id}}')">Edit</button>
-                    <button class="btn-danger" onclick="deleteQuiz('{{this._id}}')">Delete</button>
+                <div class="quiz-actions">
+                    <button class="btn-primary" onclick="window.location.href='/quiz/{{this._id}}/review'">Review Quiz</button>
+                    <button class="btn-danger" onclick="deleteQuiz('{{this._id}}')">Delete Quiz</button>
                 </div>
             </div>
             {{/each}}
-        </div>
-    </section>
-    <section class="admin-section">
-        <h2>Reports & Analytics</h2>
-        <div class="reports-grid">
-            <div class="report-card">
-                <h3>Popular Categories</h3>
-            </div>
-            <div class="report-card">
-                <h3>User Activity</h3>
-            </div>
-            <div class="report-card">
-                <h3>Quiz Performance</h3>
-            </div>
         </div>
     </section>
 </div>
