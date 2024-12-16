@@ -98,6 +98,7 @@
                     <h3>{{this.quizTitle}}</h3>
                     <p>Score: {{this.score}}%</p>
                     <p>Date: {{this.date}}</p>
+                    <button class="btn-secondary" onclick="window.location.href='/quiz/{{this.quizId}}/review'">Review Quiz</button>
                 </div>
                 {{else}}
                 <div class="no-results">

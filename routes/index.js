@@ -474,6 +474,39 @@ export const buildRoutes = (app) => {
         }
     });
 
+    app.get('/quiz/:id/review', async (req, res) => {
+        try {
+            if (!req.session.user) {
+                return res.redirect('/login');
+            }
+    
+            const quizCollection = await quizzes();
+            const quiz = await quizCollection.findOne({ _id: new ObjectId(req.params.id) });
+    
+            if (!quiz) {
+                throw new Error('Quiz not found');
+            }
+    
+            res.render('quiz/review', {
+                title: `Review: ${quiz.title}`,
+                quiz: {
+                    title: quiz.title,
+                    description: quiz.description,
+                    questions: quiz.questions.map(q => ({
+                        question: q.question,
+                        correctAnswer: q.correctAnswer ? 'True' : 'False',
+                        explanation: q.explanation
+                    }))
+                }
+            });
+        } catch (e) {
+            res.status(404).render('error', {
+                title: 'Error',
+                error: e.message
+            });
+        }
+    });
+
     app.use('*', (req, res) => {
         res.status(404).render('error', {
             title: '404 Not Found',
