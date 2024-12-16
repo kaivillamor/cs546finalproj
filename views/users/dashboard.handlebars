@@ -29,6 +29,7 @@
             <h2>Available Quizzes</h2>
             <div class="search-bar">
                 <input type="text" placeholder="Search quizzes..." id="quiz-search">
+                <button class="btn-primary" id="search-button">Search</button>
             </div>
             <div class="quiz-grid">
                 {{#each availableQuizzes}}
@@ -40,7 +41,8 @@
                         <span>Category: {{this.category}}</span>
                     </div>
                     <div class="quiz-actions">
-                        <button class="btn-primary" onclick="window.location.href='/quiz/{{this._id}}'">Take Quiz</button>
+                        <button class="btn-primary" onclick="window.location.href='/quiz/{{this._id}}'">Take
+                            Quiz</button>
                         <button class="btn-secondary" onclick="saveForLater('{{this._id}}')">Save for Later</button>
                     </div>
                 </div>
@@ -77,7 +79,8 @@
                         <span>Category: {{this.category}}</span>
                     </div>
                     <div class="quiz-actions">
-                        <button class="btn-primary" onclick="window.location.href='/quiz/{{this._id}}'">Take Quiz</button>
+                        <button class="btn-primary" onclick="window.location.href='/quiz/{{this._id}}'">Take
+                            Quiz</button>
                         <button class="btn-danger" onclick="removeSaved('{{this._id}}')">Remove</button>
                     </div>
                 </div>
@@ -98,7 +101,8 @@
                     <h3>{{this.quizTitle}}</h3>
                     <p>Score: {{this.score}}%</p>
                     <p>Date: {{this.date}}</p>
-                    <button class="btn-secondary" onclick="window.location.href='/quiz/{{this.quizId}}/review'">Review Quiz</button>
+                    <button class="btn-secondary" onclick="window.location.href='/quiz/{{this.quizId}}/review'">Review
+                        Quiz</button>
                 </div>
                 {{else}}
                 <div class="no-results">

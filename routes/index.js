@@ -270,7 +270,7 @@ export const buildRoutes = (app) => {
             }
 
             let score = 0;
-            const resultId = new ObjectId(); // Generate new ObjectId for the result
+            const resultId = new ObjectId();
 
             quiz.questions.forEach((question, index) => {
                 const submittedAnswer = answers[index];
@@ -479,14 +479,14 @@ export const buildRoutes = (app) => {
             if (!req.session.user) {
                 return res.redirect('/login');
             }
-    
+
             const quizCollection = await quizzes();
             const quiz = await quizCollection.findOne({ _id: new ObjectId(req.params.id) });
-    
+
             if (!quiz) {
                 throw new Error('Quiz not found');
             }
-    
+
             res.render('quiz/review', {
                 title: `Review: ${quiz.title}`,
                 quiz: {
@@ -504,6 +504,44 @@ export const buildRoutes = (app) => {
                 title: 'Error',
                 error: e.message
             });
+        }
+    });
+
+    app.get('/api/quizzes/search', async (req, res) => {
+        try {
+            if (!req.session.user) {
+                return res.status(401).json({ error: 'Not authenticated' });
+            }
+    
+            const searchTerm = req.query.term;
+            const quizCollection = await quizzes();
+    
+            let query = { active: true };
+            if (searchTerm) {
+                query = {
+                    active: true,
+                    $or: [
+                        { title: { $regex: searchTerm, $options: 'i' } },
+                        { description: { $regex: searchTerm, $options: 'i' } },
+                        { category: { $regex: searchTerm, $options: 'i' } }
+                    ]
+                };
+            }
+    
+            const searchResults = await quizCollection.find(query).toArray();
+            
+            const formattedResults = searchResults.map(quiz => ({
+                _id: quiz._id,
+                title: quiz.title,
+                description: quiz.description,
+                questionCount: quiz.questions.length,
+                category: quiz.category || 'General',
+                creator: quiz.createdBy
+            }));
+    
+            res.json(formattedResults);
+        } catch (e) {
+            res.status(500).json({ error: e.message });
         }
     });
 
