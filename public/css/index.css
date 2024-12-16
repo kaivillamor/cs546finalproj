@@ -285,14 +285,9 @@ section {
 
 .result-card {
     background: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: 1px solid #ddd;
     padding: 15px;
-    transition: transform 0.2s;
-}
-
-.result-card:hover {
-    transform: translateY(-2px);
+    margin-bottom: 15px;
 }
 
 .result-card h3 {
@@ -344,9 +339,9 @@ section {
 
 .report-card {
     background: white;
-    border-radius: 8px;
+    border: 1px solid #ddd;
     padding: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 15px;
 }
 
 .report-card h3 {
@@ -465,15 +460,10 @@ section {
 }
 
 .user-card {
-    background: white;
-    border-radius: 8px;
+    background: #ffffff;
+    border: 1px solid #ddd;
     padding: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    transition: transform 0.2s;
-}
-
-.user-card:hover {
-    transform: translateY(-2px);
+    margin-bottom: 15px;
 }
 
 .user-info {

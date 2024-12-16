@@ -23,7 +23,7 @@ router.get('/', async (req, res) => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        const allQuizzes = await quizCollection.find({}).limit(20).toArray();
+        const allQuizzes = await quizCollection.find({}).toArray();
         
         const categoryCount = {};
         allQuizzes.forEach(quiz => {
@@ -90,29 +90,30 @@ router.get('/', async (req, res) => {
             averageScore: Math.round(data.total / data.count)
         }));
 
-        const analytics = {
-            popularCategories: popularCategories,
-            userActivity: {
-                newUsers: newUsers,
-                newQuizzes: newQuizzes,
-                recentBadges: []
-            },
-            categoryPerformance: Object.entries(categoryCount).map(([category, count]) => ({
-                category,
-                count,
-                performance: Math.floor(Math.random() * 100)
-            }))
-        };
-
         res.render('admin/dashboard', {
             title: 'Admin Dashboard',
-            users: allUsers,
-            allQuizzes: allQuizzes,
-            analytics: analytics
+            stats: {
+                totalUsers,
+                totalQuizzes,
+                activeToday: await userCollection.countDocuments({ 'lastActive': { $gte: today } }),
+                quizzesToday: await quizCollection.countDocuments({ 'createdAt': { $gte: today } })
+            },
+            analytics: {
+                popularCategories,
+                userActivity: {
+                    newUsers,
+                    newQuizzes,
+                    recentBadges: recentBadges.slice(0, 5)
+                },
+                categoryPerformance: averageScoresByCategory
+            },
+            users: allUsers
         });
     } catch (e) {
-        console.error('Error in admin route:', e);
-        res.status(500).render('error', { error: e.message });
+        res.status(500).render('error', {
+            title: 'Error',
+            error: e.message
+        });
     }
 });
 
@@ -144,26 +145,33 @@ router.get('/api/users/search', async (req, res) => {
     }
 });
 
-router.get('/api/quizzes/search', async (req, res) => {
+router.post('/api/users/:userId/ban', async (req, res) => {
     try {
-        const quizCollection = await quizzes();
-        const searchTerm = req.query.term || '';
-
-        let query = {};
-        if (searchTerm) {
-            query = {
-                title: { $regex: searchTerm, $options: 'i' }
-            };
+        if (!req.session || !req.session.user || req.session.user.role !== 'admin') {
+            return res.status(401).json({ error: 'Unauthorized - Admin access required' });
         }
 
-        const searchResults = await quizCollection.find(query)
-            .limit(20)
-            .toArray();
+        const userCollection = await users();
+        const userId = req.params.userId;
+        
+        if (!ObjectId.isValid(userId)) {
+            return res.status(400).json({ error: 'Invalid user ID' });
+        }
 
-        res.json(searchResults);
+        if (userId === req.session.user.id) {
+            return res.status(400).json({ error: 'Cannot ban yourself' });
+        }
+
+        const result = await userCollection.deleteOne({ _id: new ObjectId(userId) });
+        
+        if (result.deletedCount === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        res.json({ success: true });
     } catch (e) {
-        console.error('Search error:', e);
-        res.status(500).json({ error: 'Search failed' });
+        console.error('Ban user error:', e);
+        res.status(500).json({ error: 'Failed to ban user' });
     }
 });
 

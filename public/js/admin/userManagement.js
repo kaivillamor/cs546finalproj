@@ -15,6 +15,7 @@ function displayUsers(users) {
     users.forEach(user => {
         const userCard = document.createElement('div');
         userCard.className = 'stat-card user-card';
+        userCard.dataset.userId = user._id;
 
         const userInfo = document.createElement('div');
         userInfo.className = 'user-info';
@@ -64,7 +65,7 @@ function displayUsers(users) {
         const banButton = document.createElement('button');
         banButton.className = 'btn-danger';
         banButton.textContent = 'Ban User';
-        banButton.addEventListener('click', () => banUser(user._id));
+        banButton.onclick = () => banUser(user._id);
 
         actionsDiv.appendChild(banButton);
         userCard.appendChild(userInfo);
@@ -91,31 +92,57 @@ async function banUser(userId) {
     }
     
     try {
-        const response = await fetch(`/api/users/${userId}/ban`, {
+        const response = await fetch(`/admin/api/users/${userId}/ban`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
-            }
+            },
+            credentials: 'include'
         });
         
-        if (!response.ok) throw new Error('Failed to ban user');
+        if (response.status === 401) {
+            alert('You have to be an admin!');
+            window.location.href = '/login';
+            return;
+        }
         
-        // Refresh the user list
-        searchUsers('');
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to ban user');
+        }
+        
+        const userCard = document.querySelector(`[data-user-id="${userId}"]`);
+        if (userCard) {
+            userCard.remove();
+        }
+
+        alert('User has been banned successfully');
+        
     } catch (error) {
         console.error('Error banning user:', error);
-        alert('Failed to ban user. Please try again.');
+        if (error.message === 'Failed to ban user') {
+            alert('Failed to ban user. Please try again.');
+        } else {
+            alert(error.message);
+        }
     }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    const searchInput = document.getElementById('user-search');
-    
-    searchInput.addEventListener('input', (e) => {
-        if (searchTimeout) clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => searchUsers(e.target.value), 300);
+    document.querySelectorAll('.ban-user-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const userId = this.dataset.userId;
+            banUser(userId);
+        });
     });
 
-    // Load initial users
+    const searchInput = document.getElementById('user-search');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            if (searchTimeout) clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => searchUsers(e.target.value), 300);
+        });
+    }
+
     searchUsers('');
 }); 

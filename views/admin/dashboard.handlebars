@@ -23,12 +23,9 @@
     </div>
     <section class="admin-section">
         <h2>User Management</h2>
-        <div class="search-bar">
-            <input type="text" placeholder="Search users..." id="user-search">
-        </div>
         <div class="user-list users-grid">
             {{#each users}}
-            <div class="stat-card user-card">
+            <div class="stat-card user-card" data-user-id="{{this._id}}">
                 <div class="user-info">
                     <h3>{{this.username}}</h3>
                     <p>{{this.email}}</p>
@@ -49,25 +46,6 @@
             </div>
             {{else}}
             <div class="no-results">No users found</div>
-            {{/each}}
-        </div>
-    </section>
-    <section class="admin-section">
-        <h2>Quiz Management</h2>
-        <div id="quizzes-grid" class="quizzes-grid">
-            {{#each allQuizzes}}
-            <div class="quiz-card">
-                <h3>{{this.title}}</h3>
-                <div class="quiz-meta">
-                    <span>Questions: {{this.questionCount}}</span>
-                    <span>Category: {{this.category}}</span>
-                </div>
-                <div class="quiz-actions">
-                    <button class="btn-danger" onclick="deleteQuiz('{{this._id}}')">Delete Quiz</button>
-                </div>
-            </div>
-            {{else}}
-            <div class="no-results">No quizzes found</div>
             {{/each}}
         </div>
     </section>
@@ -125,3 +103,4 @@
         </div>
     </section>
 </div>
+<script src="/public/js/admin/userManagement.js"></script>
