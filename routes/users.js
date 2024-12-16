@@ -46,16 +46,17 @@ router.get('/', async (req, res) => {
             .limit(5)
             .toArray();
 
-        let formattedQuizzes = [];
-        for (let quiz of availableQuizzes) {
-            formattedQuizzes.push({
-                _id: quiz._id,
-                title: quiz.title,
-                description: quiz.description,
-                questionCount: quiz.questions.length,
-                category: quiz.category || 'General'
-            });
-        }
+            let formattedQuizzes = [];
+            for (let quiz of availableQuizzes) {
+                formattedQuizzes.push({
+                    _id: quiz._id,
+                    title: quiz.title,
+                    description: quiz.description,
+                    questionCount: quiz.questions.length,
+                    category: quiz.category || 'General',
+                    creator: quiz.creatorUsername || 'Unknown'
+                });
+            }
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);

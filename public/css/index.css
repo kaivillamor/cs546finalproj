@@ -371,3 +371,13 @@ section {
     padding: 10px;
     color: #666;
 }
+
+.quiz-meta span {
+    margin-right: 15px;
+    color: #666;
+    font-size: 0.9em;
+}
+
+.quiz-meta span:last-child {
+    margin-right: 0;
+}

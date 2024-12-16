@@ -197,6 +197,7 @@ export const buildRoutes = (app) => {
                     category: category.trim(),
                     questions: JSON.parse(questions),
                     createdBy: req.session.user.id,
+                    creatorUsername: req.session.user.username,
                     createdAt: new Date(),
                     active: true
                 };
@@ -256,7 +257,7 @@ export const buildRoutes = (app) => {
             }
 
             const { answers } = req.body;
-            
+
             if (!Array.isArray(answers)) {
                 throw new Error('Invalid answers format');
             }
@@ -275,7 +276,7 @@ export const buildRoutes = (app) => {
             quiz.questions.forEach((question, index) => {
                 const submittedAnswer = answers[index];
                 const correctAnswer = question.correctAnswer;
-                
+
                 if (submittedAnswer === correctAnswer) {
                     score++;
                 }
@@ -512,10 +513,10 @@ export const buildRoutes = (app) => {
             if (!req.session.user) {
                 return res.status(401).json({ error: 'Not authenticated' });
             }
-    
+
             const searchTerm = req.query.term;
             const quizCollection = await quizzes();
-    
+
             let query = { active: true };
             if (searchTerm) {
                 query = {
@@ -527,9 +528,9 @@ export const buildRoutes = (app) => {
                     ]
                 };
             }
-    
+
             const searchResults = await quizCollection.find(query).toArray();
-            
+
             const formattedResults = searchResults.map(quiz => ({
                 _id: quiz._id,
                 title: quiz.title,
@@ -538,7 +539,7 @@ export const buildRoutes = (app) => {
                 category: quiz.category || 'General',
                 creator: quiz.createdBy
             }));
-    
+
             res.json(formattedResults);
         } catch (e) {
             res.status(500).json({ error: e.message });
